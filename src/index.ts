@@ -1,3 +1,3 @@
-import { EventServiceProvider } from "./Infrastructure/Messaging/Kafka/EventServiceProvider";
+import { EventBusServiceProvider } from "./Infrastructure/Messaging/Kafka/EventBusServiceProvider";
 
-export { EventServiceProvider };
+export { EventBusServiceProvider };

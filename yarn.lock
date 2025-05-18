@@ -54,12 +54,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"contracts.ts@github:qtvhao/contracts.ts":
+"class-transformer@npm:^0.5.1":
+  version: 0.5.1
+  resolution: "class-transformer@npm:0.5.1"
+  checksum: f191c8b4cc4239990f5efdd790cabdd852c243ed66248e39f6616a349c910c6eed2d9fd1fbf7ee6ea89f69b4f1d0b493b27347fe0cd0ae26b47c3745a805b6d3
+  languageName: node
+  linkType: hard
+
+"contracts.ts@github:qtvhao/Contracts.ts":
   version: 1.0.0
-  resolution: "contracts.ts@https://github.com/qtvhao/contracts.ts.git#commit=b451058a9e24b153713690e7885b36794174d731"
+  resolution: "contracts.ts@https://github.com/qtvhao/Contracts.ts.git#commit=f58de36462db3f77795a175ef9b43911340b71b6"
   dependencies:
     inversify: ^7.5.1
-  checksum: a1b7a435f33f7df240cdfd087491762eb25163336f40ecfdb2583b779122ec55d9521816ae8ef716dc8d0baaf518f5acec4a740f6dca06c944cea73eaa352f53
+  checksum: 7aeeb7cbcb2b492ea19edfa7d56dbc273991c657baf4ebf226f1eb6b01dd604e519e65daa48b401b47afeab130e22def82ad0f253bb6e0f12f4ad074eeeb16ca
   languageName: node
   linkType: hard
 
@@ -76,10 +83,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"kernel.ts@github:qtvhao/kernel.ts":
+  version: 1.0.0
+  resolution: "kernel.ts@https://github.com/qtvhao/kernel.ts.git#commit=f1189716ad2235034ac7da8879feb24544045a8f"
+  dependencies:
+    inversify: ^7.5.1
+    support.ts: "github:qtvhao/support.ts"
+  checksum: 360272002d729e7eea2f3ed67ea6d91c474bb62c7fae3c7144fc478b63d71346c5b63308c1195cc111551f6c9b938fbe9d226845e900c3c95b07fc51f0a5b7fe
+  languageName: node
+  linkType: hard
+
 "messaging.ts@workspace:.":
   version: 0.0.0-use.local
   resolution: "messaging.ts@workspace:."
   dependencies:
-    contracts.ts: "github:qtvhao/contracts.ts"
+    class-transformer: ^0.5.1
+    kernel.ts: "github:qtvhao/kernel.ts"
   languageName: unknown
   linkType: soft
+
+"support.ts@github:qtvhao/support.ts":
+  version: 1.0.0
+  resolution: "support.ts@https://github.com/qtvhao/support.ts.git#commit=882ea7c3aca4f0ae63a3a52aab30286fef7c6f2a"
+  dependencies:
+    contracts.ts: "github:qtvhao/Contracts.ts"
+    inversify: ^7.5.1
+  checksum: 80a167517c3bf33866c0bf9eb9ffcab52c168621e051c5d52cc62b87581f4569a312a7d41676a80cc610226e64fcd0b7f00832fdcbd5bb32d61d4c635454dfd6
+  languageName: node
+  linkType: hard
