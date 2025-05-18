@@ -30,7 +30,7 @@ class MyDomainEvent implements IDomainEvent {
   }
 }
 
-export class MyEventMapper implements IEventMapper<MyDTO, MyDomainEvent> {
+class MyEventMapper implements IEventMapper<MyDTO, MyDomainEvent> {
   toDomain(dto: MyDTO): MyDomainEvent {
     return new MyDomainEvent(dto.id, dto.value);
   }
@@ -43,23 +43,41 @@ export class MyEventMapper implements IEventMapper<MyDTO, MyDomainEvent> {
   }
 }
 
+class EventMapperRegistry {
+  private readonly mappers: Map<string, IEventMapper<any, any>> = new Map();
+
+  get(eventName: string): IEventMapper<any, any> | undefined {
+    return this.mappers.get(eventName);
+  }
+
+  set<T extends IDomainEvent, U>(
+    eventName: string,
+    mapper: IEventMapper<U, T>,
+  ): void {
+    this.mappers.set(eventName, mapper);
+  }
+}
+
 export class KafkaEventBus implements IEventBus {
   private readonly producer: Producer;
   private readonly consumer: Consumer;
-  private readonly mappers: Map<string, IEventMapper<any, any>> = new Map();
+  private readonly mapperRegistry: EventMapperRegistry;
   private readonly handlers: Map<string, Set<IEventHandler<any>>> = new Map();
 
-  constructor(producer: Producer, consumer: Consumer) {
+  constructor(
+    producer: Producer,
+    consumer: Consumer,
+    mapperRegistry: EventMapperRegistry,
+  ) {
     this.producer = producer;
     this.consumer = consumer;
-
-    this.mappers.set("MyDomainEvent", new MyEventMapper());
+    this.mapperRegistry = mapperRegistry;
 
     this.consumer.run({
       eachMessage: async ({ topic, message }: EachMessagePayload) => {
         const eventName = topic;
         const handlers = this.handlers.get(eventName);
-        const mapper = this.mappers.get(eventName);
+        const mapper = this.mapperRegistry.get(eventName);
         if (!handlers || !mapper || !message.value) return;
 
         const dto = JSON.parse(message.value.toString());
@@ -72,10 +90,14 @@ export class KafkaEventBus implements IEventBus {
     });
   }
 
+  setup(): void {
+    this.mapperRegistry.set("MyDomainEvent", new MyEventMapper());
+  }
+
   async publish(events: IDomainEvent[]): Promise<void> {
     for (const event of events) {
       const eventName = event.eventName();
-      const mapper = this.mappers.get(eventName);
+      const mapper = this.mapperRegistry.get(eventName);
       if (!mapper) continue;
 
       const dto = mapper.toDTO(event);
@@ -107,6 +129,6 @@ export class KafkaEventBus implements IEventBus {
     eventName: string,
     mapper: IEventMapper<T, any>,
   ): void {
-    this.mappers.set(eventName, mapper);
+    this.mapperRegistry.set(eventName, mapper);
   }
 }
