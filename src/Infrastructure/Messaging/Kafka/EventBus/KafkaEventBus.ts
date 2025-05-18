@@ -57,41 +57,80 @@ class EventMapperRegistry {
     this.mappers.set(eventName, mapper);
   }
 }
+class TopicRegistry {
+  private readonly topics = new Map<string, new (...args: any[]) => IDomainEvent>();
+
+  register(topic: string, eventCtor: new (...args: any[]) => IDomainEvent): void {
+    this.topics.set(topic, eventCtor);
+  }
+
+  getEventCtor(topic: string): (new (...args: any[]) => IDomainEvent) | undefined {
+    return this.topics.get(topic);
+  }
+}
+class MyEventHandler implements IEventHandler<MyDomainEvent> {
+    async handle(event: MyDomainEvent): Promise<void> {
+        console.log("Handling MyEvent with message:", event);
+    }
+
+    supports(): Array<new (...args: any[]) => MyDomainEvent> {
+        return [MyDomainEvent];
+    }
+}
 
 export class KafkaEventBus implements IEventBus {
   private readonly producer: Producer;
   private readonly consumer: Consumer;
   private readonly mapperRegistry: EventMapperRegistry;
+  private readonly topicRegistry: TopicRegistry;
   private readonly handlers: Map<string, Set<IEventHandler<any>>> = new Map();
 
   constructor(
     producer: Producer,
     consumer: Consumer,
     mapperRegistry: EventMapperRegistry,
+    topicRegistry: TopicRegistry,
   ) {
     this.producer = producer;
     this.consumer = consumer;
     this.mapperRegistry = mapperRegistry;
+    this.topicRegistry = topicRegistry;
+  }
 
-    this.consumer.run({
-      eachMessage: async ({ topic, message }: EachMessagePayload) => {
-        const eventName = topic;
-        const handlers = this.handlers.get(eventName);
-        const mapper = this.mapperRegistry.get(eventName);
-        if (!handlers || !mapper || !message.value) return;
+  private async handleEachMessage({ topic, message }: EachMessagePayload): Promise<void> {
+    const eventCtor = this.topicRegistry.getEventCtor(topic);
+    if (!eventCtor) return;
+    const eventName = new eventCtor().eventName();
+    const handlers = this.handlers.get(eventName);
+    const mapper = this.mapperRegistry.get(eventName);
+    if (!handlers || !mapper || !message.value) return;
 
-        const dto = JSON.parse(message.value.toString());
-        const domainEvent = mapper.toDomain(dto);
+    try {
+      const dto = JSON.parse(message.value.toString());
+      const domainEvent = mapper.toDomain(dto);
 
-        for (const handler of handlers) {
+      for (const handler of handlers) {
+        try {
           await handler.handle(domainEvent);
+        } catch (handlerErr) {
+          console.error(`Error handling event with handler:`, handlerErr);
         }
-      },
+      }
+    } catch (err) {
+      console.error(`Failed to process message for topic ${topic}:`, err);
+    }
+  }
+
+  async start(): Promise<void> {
+    await this.consumer.run({
+      eachMessage: this.handleEachMessage.bind(this),
     });
   }
 
   setup(): void {
     this.mapperRegistry.set("MyDomainEvent", new MyEventMapper());
+    this.topicRegistry.register("MyDomainEvent", MyDomainEvent);
+    this.subscribe(MyDomainEvent, new MyEventHandler);
   }
 
   async publish(events: IDomainEvent[]): Promise<void> {
@@ -118,6 +157,7 @@ export class KafkaEventBus implements IEventBus {
     handler: IEventHandler<T>,
   ): void {
     const eventName = eventCtor.prototype.eventName();
+    this.topicRegistry.register(eventName, eventCtor);
     if (!this.handlers.has(eventName)) {
       this.handlers.set(eventName, new Set());
       this.consumer.subscribe({ topic: eventName });
