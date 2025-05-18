@@ -3,8 +3,9 @@ import {
   IEventBus,
   IEventHandler,
   IEventMapper,
+  IEventMapperRegistry,
 } from "contracts.ts";
-import { EventMapperRegistry, TopicRegistry } from "support.ts";
+import { TopicRegistry } from "support.ts";
 import { Consumer, EachMessagePayload, Producer } from "kafkajs";
 
 interface MyDTO {
@@ -74,14 +75,14 @@ class MyEventHandler implements IEventHandler<MyDomainEvent> {
 export class KafkaEventBus implements IEventBus {
   private readonly producer: Producer;
   private readonly consumer: Consumer;
-  private readonly mapperRegistry: EventMapperRegistry;
+  private readonly mapperRegistry: IEventMapperRegistry;
   private readonly topicRegistry: TopicRegistry;
   private readonly handlers: Array<IEventHandler<any>> = [];
 
   constructor(
     producer: Producer,
     consumer: Consumer,
-    mapperRegistry: EventMapperRegistry,
+    mapperRegistry: IEventMapperRegistry,
     topicRegistry: TopicRegistry,
   ) {
     this.producer = producer;
