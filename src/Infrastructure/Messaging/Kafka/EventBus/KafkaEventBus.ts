@@ -1,12 +1,15 @@
 import {
   IDomainEvent,
-  IEventBus,
   IEventHandler,
   IEventMapper,
   IEventMapperRegistry,
+  IConsumer,
+  IProducer,
+  EachMessagePayload,
+  IProducerConsumerEventBus,
+  IMessageBroker,
 } from "contracts.ts";
 import { TopicRegistry } from "support.ts";
-import { Consumer, EachMessagePayload, Producer } from "kafkajs";
 
 interface MyDTO {
   id: string;
@@ -72,16 +75,16 @@ class MyEventHandler implements IEventHandler<MyDomainEvent> {
  * Publishes and consumes domain events via Kafka.
  * Coordinates mapping, topic registration, and event handling.
  */
-export class KafkaEventBus implements IEventBus {
-  private readonly producer: Producer;
-  private readonly consumer: Consumer;
+export class KafkaEventBus implements IProducerConsumerEventBus {
+  private readonly producer: IProducer;
+  private readonly consumer: IConsumer;
   private readonly mapperRegistry: IEventMapperRegistry;
   private readonly topicRegistry: TopicRegistry;
   private readonly handlers: Array<IEventHandler<any>> = [];
 
   constructor(
-    producer: Producer,
-    consumer: Consumer,
+    producer: IProducer,
+    consumer: IConsumer,
     mapperRegistry: IEventMapperRegistry,
     topicRegistry: TopicRegistry,
   ) {
@@ -141,15 +144,10 @@ export class KafkaEventBus implements IEventBus {
       if (!mapper) continue;
 
       const dto = mapper.toDTO(event);
-      await this.producer.send({
-        topic: eventName,
-        messages: [
-          {
+      await this.producer.send(eventName, JSON.stringify({
             key: event.aggregateId,
             value: JSON.stringify(dto),
-          },
-        ],
-      });
+          }));
     }
   }
 
