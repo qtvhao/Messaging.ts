@@ -3,13 +3,106 @@ import {
   IEventHandler,
   IEventMapper,
   IEventMapperRegistry,
-  IConsumer,
-  IProducer,
   EachMessagePayload,
   IProducerConsumerEventBus,
   IMessageBroker,
 } from "contracts.ts";
 import { TopicRegistry } from "support.ts";
+
+/**
+ * Kafka-based implementation of the IEventBus interface.
+ * Publishes and consumes domain events via Kafka.
+ * Coordinates mapping, topic registration, and event handling.
+ */
+export class KafkaEventBus implements IProducerConsumerEventBus {
+  private readonly messageBroker: IMessageBroker;
+  private readonly mapperRegistry: IEventMapperRegistry;
+  private readonly topicRegistry: TopicRegistry;
+  private readonly handlers: Array<IEventHandler<any>> = [];
+
+  constructor(
+    messageBroker: IMessageBroker,
+    mapperRegistry: IEventMapperRegistry,
+    topicRegistry: TopicRegistry,
+  ) {
+    this.messageBroker = messageBroker;
+    this.mapperRegistry = mapperRegistry;
+    this.topicRegistry = topicRegistry;
+  }
+
+  private async handleEachMessage(
+    { topic, message }: EachMessagePayload,
+  ): Promise<void> {
+    const eventCtor = this.topicRegistry.getEventCtor(topic);
+    if (!eventCtor) return;
+
+    const eventName = new eventCtor().eventName();
+    const mapper = this.mapperRegistry.get(eventName);
+    if (!mapper) return;
+
+    const value = message.value?.toString();
+    if (!value) return;
+
+    let dto: any;
+    try {
+      dto = JSON.parse(value);
+    } catch (err) {
+      console.error("Failed to parse message value:", err);
+      return;
+    }
+
+    const domainEvent = mapper.toDomain(dto);
+
+    for (const handler of this.handlers) {
+      const supportedEvents = handler.supports();
+      if (supportedEvents.some((ctor) => domainEvent instanceof ctor)) {
+        await handler.handle(domainEvent);
+      }
+    }
+  }
+
+  async start(): Promise<void> {
+    await this.messageBroker.run({
+      eachMessage: this.handleEachMessage.bind(this),
+    });
+  }
+
+  setup(): void {
+    this.mapperRegistry.set("MyDomainEvent", new MyEventMapper());
+    this.topicRegistry.register("MyDomainEvent", MyDomainEvent);
+    this.subscribe(MyDomainEvent, new MyEventHandler());
+  }
+
+  async publish(events: IDomainEvent[]): Promise<void> {
+    for (const event of events) {
+      const eventName = event.eventName();
+      const mapper = this.mapperRegistry.get(eventName);
+      if (!mapper) continue;
+
+      const dto = mapper.toDTO(event);
+      await this.messageBroker.send(eventName, JSON.stringify({
+            key: event.aggregateId,
+            value: JSON.stringify(dto),
+          }));
+    }
+  }
+
+  subscribe<T extends IDomainEvent>(
+    eventCtor: new (...args: any[]) => T,
+    handler: IEventHandler<T>,
+  ): void {
+    const eventName = eventCtor.prototype.eventName();
+    this.topicRegistry.register(eventName, eventCtor);
+    this.handlers.push(handler);
+  }
+
+  registerMapper<T extends IDomainEvent>(
+    eventName: string,
+    mapper: IEventMapper<T, any>,
+  ): void {
+    this.mapperRegistry.set(eventName, mapper);
+  }
+}
 
 interface MyDTO {
   id: string;
@@ -67,103 +160,5 @@ class MyEventHandler implements IEventHandler<MyDomainEvent> {
 
   supports(): Array<new (...args: any[]) => MyDomainEvent> {
     return [MyDomainEvent];
-  }
-}
-
-/**
- * Kafka-based implementation of the IEventBus interface.
- * Publishes and consumes domain events via Kafka.
- * Coordinates mapping, topic registration, and event handling.
- */
-export class KafkaEventBus implements IProducerConsumerEventBus {
-  private readonly producer: IProducer;
-  private readonly consumer: IConsumer;
-  private readonly mapperRegistry: IEventMapperRegistry;
-  private readonly topicRegistry: TopicRegistry;
-  private readonly handlers: Array<IEventHandler<any>> = [];
-
-  constructor(
-    producer: IProducer,
-    consumer: IConsumer,
-    mapperRegistry: IEventMapperRegistry,
-    topicRegistry: TopicRegistry,
-  ) {
-    this.producer = producer;
-    this.consumer = consumer;
-    this.mapperRegistry = mapperRegistry;
-    this.topicRegistry = topicRegistry;
-  }
-
-  private async handleEachMessage(
-    { topic, message }: EachMessagePayload,
-  ): Promise<void> {
-    const eventCtor = this.topicRegistry.getEventCtor(topic);
-    if (!eventCtor) return;
-
-    const eventName = new eventCtor().eventName();
-    const mapper = this.mapperRegistry.get(eventName);
-    if (!mapper) return;
-
-    const value = message.value?.toString();
-    if (!value) return;
-
-    let dto: any;
-    try {
-      dto = JSON.parse(value);
-    } catch (err) {
-      console.error("Failed to parse message value:", err);
-      return;
-    }
-
-    const domainEvent = mapper.toDomain(dto);
-
-    for (const handler of this.handlers) {
-      const supportedEvents = handler.supports();
-      if (supportedEvents.some((ctor) => domainEvent instanceof ctor)) {
-        await handler.handle(domainEvent);
-      }
-    }
-  }
-
-  async start(): Promise<void> {
-    await this.consumer.run({
-      eachMessage: this.handleEachMessage.bind(this),
-    });
-  }
-
-  setup(): void {
-    this.mapperRegistry.set("MyDomainEvent", new MyEventMapper());
-    this.topicRegistry.register("MyDomainEvent", MyDomainEvent);
-    this.subscribe(MyDomainEvent, new MyEventHandler());
-  }
-
-  async publish(events: IDomainEvent[]): Promise<void> {
-    for (const event of events) {
-      const eventName = event.eventName();
-      const mapper = this.mapperRegistry.get(eventName);
-      if (!mapper) continue;
-
-      const dto = mapper.toDTO(event);
-      await this.producer.send(eventName, JSON.stringify({
-            key: event.aggregateId,
-            value: JSON.stringify(dto),
-          }));
-    }
-  }
-
-  subscribe<T extends IDomainEvent>(
-    eventCtor: new (...args: any[]) => T,
-    handler: IEventHandler<T>,
-  ): void {
-    const eventName = eventCtor.prototype.eventName();
-    this.topicRegistry.register(eventName, eventCtor);
-    this.handlers.push(handler);
-  }
-
-  registerMapper<T extends IDomainEvent>(
-    eventName: string,
-    mapper: IEventMapper<T, any>,
-  ): void {
-    this.mapperRegistry.set(eventName, mapper);
   }
 }
