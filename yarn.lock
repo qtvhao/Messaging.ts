@@ -54,6 +54,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^22.15.21":
+  version: 22.15.21
+  resolution: "@types/node@npm:22.15.21"
+  dependencies:
+    undici-types: ~6.21.0
+  checksum: 989f1ce3a99916a7298ae885210385fbcb339b07f8ef420b015d69dd68863aca68aeae07833736b300720d9394b8e1875600ce74166c24957d9907d29de0b788
+  languageName: node
+  linkType: hard
+
 "class-transformer@npm:^0.5.1":
   version: 0.5.1
   resolution: "class-transformer@npm:0.5.1"
@@ -63,10 +72,19 @@ __metadata:
 
 "contracts.ts@github:qtvhao/Contracts.ts":
   version: 1.0.0
-  resolution: "contracts.ts@https://github.com/qtvhao/Contracts.ts.git#commit=abe30df8f248089289418dc8afe5ffecfde40a4a"
+  resolution: "contracts.ts@https://github.com/qtvhao/Contracts.ts.git#commit=0c5dd89defda175c9ca31f788949f69c16e69ce7"
   dependencies:
     inversify: ^7.5.1
-  checksum: 46b5586ada026a1b44d7239b24e746eeebfd243fc6f694d8e8cb1f15fab2c36509ecde7312bc74ffe009783c9674fc317387dc6167ce1dac381d384a6067a012
+  checksum: b79bde977c122e723b09f1489ff936f91f2b4adeb306f6074e43a1847797afd216a204e1a9b14e61ff7bf7a6530753fbd2d7877d8cfa1a4c811996df0c25cb04
+  languageName: node
+  linkType: hard
+
+"contracts.ts@github:qtvhao/contracts.ts":
+  version: 1.0.0
+  resolution: "contracts.ts@https://github.com/qtvhao/contracts.ts.git#commit=0c5dd89defda175c9ca31f788949f69c16e69ce7"
+  dependencies:
+    inversify: ^7.5.1
+  checksum: b79bde977c122e723b09f1489ff936f91f2b4adeb306f6074e43a1847797afd216a204e1a9b14e61ff7bf7a6530753fbd2d7877d8cfa1a4c811996df0c25cb04
   languageName: node
   linkType: hard
 
@@ -97,7 +115,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "messaging.ts@workspace:."
   dependencies:
+    "@types/node": ^22.15.21
     class-transformer: ^0.5.1
+    contracts.ts: "github:qtvhao/contracts.ts"
     kernel.ts: "github:qtvhao/kernel.ts"
   languageName: unknown
   linkType: soft
@@ -109,5 +129,12 @@ __metadata:
     contracts.ts: "github:qtvhao/Contracts.ts"
     inversify: ^7.5.1
   checksum: 2346ce86a2a5c3ca1f7ab44ea28e26d5d3246ac74c77435fe10a33df9667eb2e643c40340d01c9f269ce1d39cf3fa2daa6515e6db6e24b08cbeb617bf4246ef4
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.21.0":
+  version: 6.21.0
+  resolution: "undici-types@npm:6.21.0"
+  checksum: 46331c7d6016bf85b3e8f20c159d62f5ae471aba1eb3dc52fff35a0259d58dcc7d592d4cc4f00c5f9243fa738a11cfa48bd20203040d4a9e6bc25e807fab7ab3
   languageName: node
   linkType: hard

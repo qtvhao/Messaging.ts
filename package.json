@@ -19,6 +19,10 @@
   },
   "dependencies": {
     "class-transformer": "^0.5.1",
+    "contracts.ts": "github:qtvhao/contracts.ts",
     "kernel.ts": "github:qtvhao/kernel.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21"
   }
 }

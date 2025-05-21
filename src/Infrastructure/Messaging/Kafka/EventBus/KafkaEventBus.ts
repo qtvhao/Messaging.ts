@@ -1,10 +1,10 @@
 import {
   IDomainEvent,
   IEventHandler,
-  IEventMapper,
   IEventMapperRegistry,
-  EachMessagePayload,
-  IProducerConsumerEventBus,
+  IEventPublisher,
+  IEventSubscriber,
+  IInitializable,
   IMessageBroker,
 } from "contracts.ts";
 import { TopicRegistry } from "support.ts";
@@ -14,76 +14,55 @@ import { TopicRegistry } from "support.ts";
  * Publishes and consumes domain events via Kafka.
  * Coordinates mapping, topic registration, and event handling.
  */
-export class KafkaEventBus implements IProducerConsumerEventBus {
-  private readonly messageBroker: IMessageBroker;
-  private readonly mapperRegistry: IEventMapperRegistry;
-  private readonly topicRegistry: TopicRegistry;
-  private readonly handlers: Array<IEventHandler<any>> = [];
-
+export class KafkaEventBus
+  implements IEventPublisher, IEventSubscriber, IInitializable {
   constructor(
-    messageBroker: IMessageBroker,
-    mapperRegistry: IEventMapperRegistry,
-    topicRegistry: TopicRegistry,
-  ) {
-    this.messageBroker = messageBroker;
-    this.mapperRegistry = mapperRegistry;
-    this.topicRegistry = topicRegistry;
-  }
+    private readonly messageBroker: IMessageBroker,
+    private readonly topicRegistry: TopicRegistry,
+    private readonly eventMapperRegistry: IEventMapperRegistry,
+  ) {}
 
-  private async handleEachMessage(
-    { topic, message }: EachMessagePayload,
-  ): Promise<void> {
-    const eventCtor = this.topicRegistry.getEventCtor(topic);
-    if (!eventCtor) return;
-
-    const eventName = new eventCtor().eventName();
-    const mapper = this.mapperRegistry.get(eventName);
-    if (!mapper) return;
-
-    const value = message.value?.toString();
-    if (!value) return;
-
-    let dto: any;
-    try {
-      dto = JSON.parse(value);
-    } catch (err) {
-      console.error("Failed to parse message value:", err);
-      return;
-    }
-
-    const domainEvent = mapper.toDomain(dto);
-
-    for (const handler of this.handlers) {
-      const supportedEvents = handler.supports();
-      if (supportedEvents.some((ctor) => domainEvent instanceof ctor)) {
-        await handler.handle(domainEvent);
-      }
-    }
-  }
+  private handlers = new Map<string, IEventHandler<IDomainEvent>[]>();
+  private subscribedTopics = new Set<string>();
 
   async start(): Promise<void> {
-    await this.messageBroker.run({
-      eachMessage: this.handleEachMessage.bind(this),
-    });
+    await this.messageBroker.start();
   }
 
-  setup(): void {
-    this.mapperRegistry.set("MyDomainEvent", new MyEventMapper());
-    this.topicRegistry.register("MyDomainEvent", MyDomainEvent);
-    this.subscribe(MyDomainEvent, new MyEventHandler());
+  async setup(): Promise<void> {
+    await this.messageBroker.setup();
   }
 
   async publish(events: IDomainEvent[]): Promise<void> {
     for (const event of events) {
-      const eventName = event.eventName();
-      const mapper = this.mapperRegistry.get(eventName);
-      if (!mapper) continue;
+      const topic = this.topicRegistry.getEventCtor(event.eventName())
+        ? event.eventName()
+        : (() => {
+          throw new Error(`No topic registered for event ${event.eventName()}`);
+        })();
+
+      const mapper = this.eventMapperRegistry.get(event.eventName());
+      if (!mapper) {
+        throw new Error(`No mapper registered for event: ${event.eventName()}`);
+      }
 
       const dto = mapper.toDTO(event);
-      await this.messageBroker.send(eventName, JSON.stringify({
-            key: event.aggregateId,
-            value: JSON.stringify(dto),
-          }));
+      const payload = Buffer.from(JSON.stringify(dto));
+
+      const headers: Record<string, Buffer> = {
+        eventName: Buffer.from(event.eventName()),
+        version: Buffer.from(event.version().toString()),
+        occurredOn: Buffer.from(event.occurredOn.toISOString()),
+      };
+
+      await this.messageBroker.produce(
+        topic,
+        Buffer.from(JSON.stringify({
+          key: Buffer.from(event.aggregateId),
+          value: payload,
+          headers,
+        })),
+      );
     }
   }
 
@@ -91,74 +70,43 @@ export class KafkaEventBus implements IProducerConsumerEventBus {
     eventCtor: new (...args: any[]) => T,
     handler: IEventHandler<T>,
   ): void {
-    const eventName = eventCtor.prototype.eventName();
-    this.topicRegistry.register(eventName, eventCtor);
-    this.handlers.push(handler);
-  }
+    const eventName = new eventCtor("", "").eventName(); // Adjust constructor if needed
+    const topic = eventName;
 
-  registerMapper<T extends IDomainEvent>(
-    eventName: string,
-    mapper: IEventMapper<T, any>,
-  ): void {
-    this.mapperRegistry.set(eventName, mapper);
-  }
-}
+    this.topicRegistry.register(topic, eventCtor);
 
-interface MyDTO {
-  id: string;
-  value: string;
-}
+    const existingHandlers = this.handlers.get(eventName) || [];
+    existingHandlers.push(handler as IEventHandler<IDomainEvent>);
+    this.handlers.set(eventName, existingHandlers);
 
-/**
- * Represents a domain event with an ID and value.
- * Implements IDomainEvent and provides event metadata like name and version.
- */
-class MyDomainEvent implements IDomainEvent {
-  public occurredOn: Date;
-  public aggregateId: string;
+    if (this.subscribedTopics.has(topic)) return;
+    this.subscribedTopics.add(topic);
 
-  constructor(
-    public id: string,
-    public value: string,
-  ) {
-    this.aggregateId = id;
-    this.occurredOn = new Date();
-  }
-  eventName() {
-    return "MyDomainEvent";
-  }
-  version() {
-    return 1;
-  }
-}
+    this.messageBroker.subscribe(topic, async (payload) => {
+      const eventCtor = this.topicRegistry.getEventCtor(payload.topic);
+      if (!eventCtor) {
+        throw new Error(
+          `No event constructor registered for topic: ${payload.topic}`,
+        );
+      }
 
-/**
- * Maps between MyDTO and MyDomainEvent.
- * Converts domain events to data transfer objects and vice versa.
- */
-class MyEventMapper implements IEventMapper<MyDTO, MyDomainEvent> {
-  toDomain(dto: MyDTO): MyDomainEvent {
-    return new MyDomainEvent(dto.id, dto.value);
-  }
+      const mapper = this.eventMapperRegistry.get(payload.topic);
+      if (!mapper) {
+        throw new Error(`No mapper registered for event: ${payload.topic}`);
+      }
 
-  toDTO(event: MyDomainEvent): MyDTO {
-    return {
-      id: event.id,
-      value: event.value,
-    };
-  }
-}
+      const rawValue = payload.message.value?.toString();
+      if (!rawValue) {
+        throw new Error("Empty event payload");
+      }
 
-/**
- * Handles MyDomainEvent by performing application-specific logic.
- * Implements IEventHandler interface for MyDomainEvent.
- */
-class MyEventHandler implements IEventHandler<MyDomainEvent> {
-  async handle(event: MyDomainEvent): Promise<void> {
-    console.log("Handling MyEvent with message:", event);
-  }
+      const dto = JSON.parse(rawValue);
+      const domainEvent = mapper.toDomain(dto);
 
-  supports(): Array<new (...args: any[]) => MyDomainEvent> {
-    return [MyDomainEvent];
+      const handlers = this.handlers.get(payload.topic) || [];
+      for (const handler of handlers) {
+        await handler.handle(domainEvent);
+      }
+    });
   }
 }
