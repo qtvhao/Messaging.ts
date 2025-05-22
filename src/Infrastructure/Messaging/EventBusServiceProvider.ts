@@ -40,6 +40,12 @@ export class EventBusServiceProvider extends ServiceProvider
     this.eventBus = new EventBus(broker, topicRegistry, eventMapperRegistry);
 
     this.app.bind<IEventBus>(TYPES.EventBus).toConstantValue(this.eventBus);
+    this.booting(() => {
+      this.eventBus.setup();
+    });
+    this.booted(() => {
+      this.eventBus.start();
+    })
   }
 
   getEventBus(): IEventBus {

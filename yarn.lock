@@ -103,12 +103,12 @@ __metadata:
 
 "kernel.ts@github:qtvhao/kernel.ts":
   version: 1.0.0
-  resolution: "kernel.ts@https://github.com/qtvhao/kernel.ts.git#commit=4e574a2d405b822a66a6c665302cd14269e1506c"
+  resolution: "kernel.ts@https://github.com/qtvhao/kernel.ts.git#commit=7dc2df8822805d53ca93b070f038e2b082aa64f0"
   dependencies:
     contracts.ts: "github:qtvhao/contracts.ts"
     inversify: ^7.5.1
     support.ts: "github:qtvhao/support.ts"
-  checksum: 3cbfe0c7f6576332189b7919753e7c3dae7cb538e7fc84929084e17c36f794bf35aa42b019a8b88205ff8c7d25801ad570c4c4081a496fa42590bd034013e64a
+  checksum: d02a3642f1aabc0992fe72b69f54c56f70c8faf8d14cbf45dc3e22686cadfc31723afb18792d2e95077812a8d2507e475e73e30b96fe814645557d0bbdf77dc9
   languageName: node
   linkType: hard
 
