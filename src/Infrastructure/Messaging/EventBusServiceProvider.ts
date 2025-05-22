@@ -1,5 +1,15 @@
-import { IEventBus, IServiceProvider, IEventMapperRegistry } from "contracts.ts";
-import { EventMapperRegistry, ServiceProvider, TopicRegistry } from "support.ts";
+import {
+  IEventBus,
+  IEventMapperRegistry,
+  IMessageBrokerFactory,
+  IServiceProvider,
+  TYPES,
+} from "contracts.ts";
+import {
+  EventMapperRegistry,
+  ServiceProvider,
+  TopicRegistry,
+} from "support.ts";
 import { EventBus } from "./EventBus";
 
 export class EventBusServiceProvider extends ServiceProvider
@@ -7,36 +17,26 @@ export class EventBusServiceProvider extends ServiceProvider
   private eventBus!: IEventBus;
 
   register(): void {
+    this.app.bind<TopicRegistry>(TopicRegistry).toConstantValue(new TopicRegistry);
+    this.app.bind<IEventMapperRegistry>(TYPES.EventMapperRegistry).toConstantValue(new EventMapperRegistry);
     const driver = process.env.EVENT_BUS_DRIVER || "kafka";
 
     const topicRegistry = this.app.get<TopicRegistry>(TopicRegistry);
-    const eventMapperRegistry = this.app.get<IEventMapperRegistry>(EventMapperRegistry);
+    const eventMapperRegistry = this.app.get<IEventMapperRegistry>(
+      TYPES.EventMapperRegistry,
+    );
 
-    switch (driver.toLowerCase()) {
-      case "nats":
-        this.eventBus = new EventBus(new NatsMessageBroker(), topicRegistry, eventMapperRegistry);
-        break;
-      case "inmemory":
-        this.eventBus = new EventBus(new InMemoryMessageBroker(), topicRegistry, eventMapperRegistry);
-        break;
-      case "kafka":
-      default:
-        this.eventBus = new EventBus(new InMemoryMessageBroker(), topicRegistry, eventMapperRegistry);
-    }
+    const brokerFactory = this.app.get<IMessageBrokerFactory>(
+      TYPES.MessageBrokerFactory,
+    );
+    const broker = brokerFactory.create(driver);
+    this.eventBus = new EventBus(broker, topicRegistry, eventMapperRegistry);
 
-    this.app.bind<IEventBus>("EventBus").toConstantValue(this.eventBus)
+    this.app.bind<IEventBus>(TYPES.EventBus).toConstantValue(this.eventBus);
   }
 
   getEventBus(): IEventBus {
     return this.eventBus;
-  }
-
-  booting(callback: Function): void {
-    this.bootingCallbacks.push(callback);
-  }
-
-  booted(callback: Function): void {
-    this.bootedCallbacks.push(callback);
   }
 
   when(predicate: () => boolean, callback: Function): void {
