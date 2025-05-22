@@ -9,12 +9,7 @@ import {
 } from "contracts.ts";
 import { TopicRegistry } from "support.ts";
 
-/**
- * Kafka-based implementation of the IEventBus interface.
- * Publishes and consumes domain events via Kafka.
- * Coordinates mapping, topic registration, and event handling.
- */
-export class KafkaEventBus
+export class EventBus
   implements IEventPublisher, IEventSubscriber, IInitializable {
   constructor(
     private readonly messageBroker: IMessageBroker,
@@ -70,7 +65,7 @@ export class KafkaEventBus
     eventCtor: new (...args: any[]) => T,
     handler: IEventHandler<T>,
   ): void {
-    const eventName = new eventCtor("", "").eventName(); // Adjust constructor if needed
+    const eventName = new eventCtor("", "").eventName();
     const topic = eventName;
 
     this.topicRegistry.register(topic, eventCtor);
