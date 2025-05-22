@@ -1,28 +1,27 @@
-import { Application, IEventBus, IServiceProvider } from "contracts.ts";
-import { KafkaEventBus } from "./Kafka/KafkaEventBus";
-import { NatsEventBus } from "./Nats/NatsEventBus";
-import { InMemoryEventBus } from "./InMemory/InMemoryEventBus";
-import { ServiceProvider } from "support.ts";
+import { IEventBus, IServiceProvider, IEventMapperRegistry } from "contracts.ts";
+import { EventMapperRegistry, ServiceProvider, TopicRegistry } from "support.ts";
+import { EventBus } from "./EventBus";
 
 export class EventBusServiceProvider extends ServiceProvider
   implements IServiceProvider {
-  private bootingCallbacks: Function[] = [];
-  private bootedCallbacks: Function[] = [];
   private eventBus!: IEventBus;
 
   register(): void {
     const driver = process.env.EVENT_BUS_DRIVER || "kafka";
 
+    const topicRegistry = this.app.get<TopicRegistry>(TopicRegistry);
+    const eventMapperRegistry = this.app.get<IEventMapperRegistry>(EventMapperRegistry);
+
     switch (driver.toLowerCase()) {
       case "nats":
-        this.eventBus = new NatsEventBus();
+        this.eventBus = new EventBus(new NatsMessageBroker(), topicRegistry, eventMapperRegistry);
         break;
       case "inmemory":
-        this.eventBus = new InMemoryEventBus();
+        this.eventBus = new EventBus(new InMemoryMessageBroker(), topicRegistry, eventMapperRegistry);
         break;
       case "kafka":
       default:
-        this.eventBus = new KafkaEventBus();
+        this.eventBus = new EventBus(new InMemoryMessageBroker(), topicRegistry, eventMapperRegistry);
     }
 
     this.app.bind<IEventBus>("EventBus").toConstantValue(this.eventBus)
@@ -38,14 +37,6 @@ export class EventBusServiceProvider extends ServiceProvider
 
   booted(callback: Function): void {
     this.bootedCallbacks.push(callback);
-  }
-
-  callBootingCallbacks(): void {
-    this.bootingCallbacks.forEach((callback) => callback());
-  }
-
-  callBootedCallbacks(): void {
-    this.bootedCallbacks.forEach((callback) => callback());
   }
 
   when(predicate: () => boolean, callback: Function): void {
