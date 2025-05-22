@@ -103,7 +103,7 @@ __metadata:
 
 "kernel.ts@github:qtvhao/kernel.ts":
   version: 1.0.0
-  resolution: "kernel.ts@https://github.com/qtvhao/kernel.ts.git#commit=9c73a6f15d6c97b0f371a59bd0974c739fb5d279"
+  resolution: "kernel.ts@https://github.com/qtvhao/kernel.ts.git#commit=42f03e9358378d43500de8893dea3859b2d0422c"
   dependencies:
     inversify: ^7.5.1
     support.ts: "github:qtvhao/support.ts"
