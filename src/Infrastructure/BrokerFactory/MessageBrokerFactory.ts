@@ -3,11 +3,12 @@ import {
     IMessageBroker,
     IMessageBrokerFactory,
 } from "contracts.ts";
+import { InMemoryMessageBroker } from "../Messaging/InMemoryBroker";
 
 export class MessageBrokerFactory implements IMessageBrokerFactory {
     create(type: BrokerType): IMessageBroker {
         switch (type) {
-            case "memory":
+            case "inmemory":
                 return new InMemoryMessageBroker();
             case "kafka":
             case "nats":
