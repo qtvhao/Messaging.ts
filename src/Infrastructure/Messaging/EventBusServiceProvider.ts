@@ -1,4 +1,5 @@
 import {
+  BrokerType,
   IEventBus,
   IEventMapperRegistry,
   IMessageBrokerFactory,
@@ -19,7 +20,7 @@ export class EventBusServiceProvider extends ServiceProvider
   register(): void {
     this.app.bind<TopicRegistry>(TopicRegistry).toConstantValue(new TopicRegistry);
     this.app.bind<IEventMapperRegistry>(TYPES.EventMapperRegistry).toConstantValue(new EventMapperRegistry);
-    const driver = process.env.EVENT_BUS_DRIVER || "kafka";
+    const driver: BrokerType = process.env.EVENT_BUS_DRIVER || "kafka";
 
     const topicRegistry = this.app.get<TopicRegistry>(TopicRegistry);
     const eventMapperRegistry = this.app.get<IEventMapperRegistry>(
