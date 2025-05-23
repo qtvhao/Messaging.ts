@@ -1,7 +1,7 @@
 import {
   IDomainEvent,
   IEventHandler,
-  IEventMapperRegistry,
+  IDomainEventMapperRegistry,
   IEventPublisher,
   IEventSubscriber,
   IInitializable,
@@ -14,7 +14,7 @@ export class EventBus
   constructor(
     private readonly messageBroker: IMessageBroker,
     private readonly topicRegistry: TopicRegistry,
-    private readonly eventMapperRegistry: IEventMapperRegistry,
+    private readonly eventMapperRegistry: IDomainEventMapperRegistry,
   ) {}
 
   private handlers = new Map<string, IEventHandler<IDomainEvent>[]>();
