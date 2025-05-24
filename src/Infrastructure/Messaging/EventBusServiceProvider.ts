@@ -7,9 +7,11 @@ import {
   IEventHandlerResolver,
   IEventTopicMapper,
   IMessageBrokerFactory,
+  IMessageBrokerFactoryMap,
   IServiceProvider,
   TYPES,
 } from "contracts.ts";
+import { Container } from "inversify";
 import {
   DomainEventMapperRegistry,
   EventTopicMapper,
@@ -24,9 +26,12 @@ export class EventBusServiceProvider extends ServiceProvider
   private eventBus!: IEventBus;
 
   register(): void {
-    this.app.bind<IMessageBrokerFactory>(TYPES.MessageBrokerFactory).to(
-      MessageBrokerFactory,
-    );
+    this.app.bind<IMessageBrokerFactory>(TYPES.MessageBrokerFactory)
+      .toDynamicValue((context: any) => {
+        const container: Container = context.container;
+        const messageBrokerFactoryMap = container.get<IMessageBrokerFactoryMap>(TYPES.MessageBrokerFactoryMap);
+        return new MessageBrokerFactory(messageBrokerFactoryMap);
+      });
     this.app.bind<IEventTopicMapper>(TYPES.EventTopicMapper).to(
       EventTopicMapper,
     );
