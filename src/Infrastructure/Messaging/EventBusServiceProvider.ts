@@ -39,7 +39,7 @@ export class EventBusServiceProvider extends ServiceProvider
     const driver: BrokerType = configService.getEventBusDriver();
 
     const topicRegistry = this.app.get<IEventTopicMapper>(EventTopicMapper);
-    const eventMapperRegistry = this.app.get(
+    const eventMapperRegistry = this.app.get<IDomainEventMapperRegistry<IDomainEvent, object>>(
       TYPES.DomainEventMapperRegistry
     );
     const brokerFactory = this.app.get<IMessageBrokerFactory>(
