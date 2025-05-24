@@ -36,7 +36,7 @@ export class EventBusServiceProvider extends ServiceProvider
       });
     this.app.bind<IEventTopicMapper>(TYPES.EventTopicMapper).to(
       EventTopicMapper,
-    );
+    ).inSingletonScope();
     this.app.bind<IDomainEventMapperRegistry<IDomainEvent, object>>(
       TYPES.DomainEventMapperRegistry,
     ).to(DomainEventMapperRegistry);
