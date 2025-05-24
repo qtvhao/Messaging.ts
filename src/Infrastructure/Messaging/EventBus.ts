@@ -23,8 +23,6 @@ export class EventBus
     private readonly handlerResolver: IEventHandlerResolver,
   ) {}
 
-  private subscribedTopics = new Set<string>();
-
   async start(): Promise<void> {
     await this.messageBroker.start();
   }
@@ -49,10 +47,34 @@ export class EventBus
       await this.messageBroker.produce(topic, message);
     }
   }
-
-  subscribe<T extends IDomainEvent>(
+  async subscribe<T extends IDomainEvent>(
     eventCtor: EventConstructor<T>,
     handler: IEventHandler<T>,
-  ): void {
+  ): Promise<void> {
+    const topic = this.eventTopicMapper.getTopicForEvent(eventCtor);
+
+    await this.messageBroker.subscribe(topic, async (payload) => {
+      const { message } = payload;
+
+      if (!message.value) {
+        console.warn(`Received empty message for topic: ${topic}`);
+        return;
+      }
+
+      const dto = JSON.parse(message.value.toString());
+      const mapper = this.domainEventMapperRegistry.get(
+        new eventCtor().eventName(),
+      );
+
+      if (!mapper) {
+        throw new Error(
+          `No mapper registered for event: ${new eventCtor().eventName()}`,
+        );
+      }
+
+      const domainEvent = mapper.toDomain(dto);
+
+      await handler.handle(domainEvent as T);
+    });
   }
 }
