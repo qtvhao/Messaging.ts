@@ -8,12 +8,7 @@ import { InMemoryMessageBroker } from "../Messaging/InMemoryMessageBroker";
 
 export class MessageBrokerFactory implements IMessageBrokerFactory {
   constructor(
-    private readonly messageBrokerFactoryMap: IMessageBrokerFactoryMap =
-      new Map([
-        ["inmemory", () => {
-          return new InMemoryMessageBroker();
-        }],
-      ]),
+    private readonly messageBrokerFactoryMap: IMessageBrokerFactoryMap,
   ) {}
 
   create(type: BrokerType): IMessageBroker {

@@ -21,6 +21,7 @@ import {
 import { MessageBrokerFactory } from "../BrokerFactory/MessageBrokerFactory";
 import { ConfigurationService } from "kernel.ts";
 import { EventBusFactory } from "./EventBusFactory";
+import { InMemoryMessageBroker } from "./InMemoryMessageBroker";
 // import { ResolutionContext } from "@inversifyjs/core/lib/cjs/resolution/models/ResolutionContext";
 
 export class EventBusServiceProvider extends ServiceProvider
@@ -28,6 +29,13 @@ export class EventBusServiceProvider extends ServiceProvider
   private eventBus!: IEventBus;
 
   register(): void {
+    const creators: IMessageBrokerFactoryMap = new Map([
+      ["inmemory", () => {
+        return new InMemoryMessageBroker();
+      }],
+    ]);
+    this.app.bind<IMessageBrokerFactoryMap>(TYPES.MessageBrokerFactoryMap)
+      .toConstantValue(creators);
     this.app.bind<IMessageBrokerFactory>(TYPES.MessageBrokerFactory)
       .toDynamicValue((container) => {
         const messageBrokerFactoryMap = container.get<IMessageBrokerFactoryMap>(
