@@ -30,10 +30,6 @@ export class InMemoryMessageBroker implements IMessageBroker {
   }
 
   async produce(topic: string, messageBuffer: Buffer): Promise<void> {
-    if (!this.isStarted) {
-      throw new Error("Broker must be started before producing.");
-    }
-
     const handlers = this.topics.get(topic);
     if (!handlers || handlers.length === 0) {
       console.warn(`No subscribers for topic: ${topic}`);
