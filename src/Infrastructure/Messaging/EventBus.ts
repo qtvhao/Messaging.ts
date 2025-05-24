@@ -1,7 +1,8 @@
 import {
+  EventConstructor,
   IDomainEvent,
   IDomainEventMapperRegistry,
-  IEventHandler,
+  IEventHandlerResolver,
   IEventPublisher,
   IEventSubscriber,
   IEventTopicMapper,
@@ -18,9 +19,9 @@ export class EventBus
       IDomainEvent,
       object
     >,
+    private readonly handlerResolver: IEventHandlerResolver
   ) {}
 
-  private handlers = new Map<string, IEventHandler<IDomainEvent>[]>();
   private subscribedTopics = new Set<string>();
 
   async start(): Promise<void> {
@@ -44,9 +45,8 @@ export class EventBus
     }
   }
 
-  subscribe<T extends IDomainEvent>(
-    eventCtor: new (...args: any[]) => T,
-    handler: IEventHandler<T>,
-  ): void {
+  async subscribe<T extends IDomainEvent>(
+    eventCtor: EventConstructor<T>
+  ): Promise<void> {
   }
 }

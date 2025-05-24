@@ -1,18 +1,18 @@
 import {
-  BrokerType,
+  IConfigurationService,
+  IDomainEvent,
+  IDomainEventMapperRegistry,
   IEventBus,
+  IEventHandlerResolver,
+  IEventTopicMapper,
   IMessageBrokerFactory,
   IServiceProvider,
   TYPES,
-  IConfigurationService,
-  IEventTopicMapper,
-  IDomainEventMapperRegistry,
-  IDomainEvent,
 } from "contracts.ts";
 import {
   DomainEventMapperRegistry,
-  ServiceProvider,
   EventTopicMapper,
+  ServiceProvider,
 } from "support.ts";
 import { MessageBrokerFactory } from "../BrokerFactory/MessageBrokerFactory";
 import { ConfigurationService } from "kernel.ts";
@@ -23,21 +23,26 @@ export class EventBusServiceProvider extends ServiceProvider
   private eventBus!: IEventBus;
 
   register(): void {
-    this.app.bind<IMessageBrokerFactory>(TYPES.MessageBrokerFactory)
-      .toConstantValue(new MessageBrokerFactory());
-    this.app.bind<IEventTopicMapper>(TYPES.EventTopicMapper).toConstantValue(
-      new EventTopicMapper(),
+    this.app.bind<IMessageBrokerFactory>(TYPES.MessageBrokerFactory).to(
+      MessageBrokerFactory,
     );
-    this.app.bind<IDomainEventMapperRegistry<IDomainEvent, object>>(TYPES.DomainEventMapperRegistry)
-      .toConstantValue(new DomainEventMapperRegistry());
+    this.app.bind<IEventTopicMapper>(TYPES.EventTopicMapper).to(
+      EventTopicMapper,
+    );
+    this.app.bind<IDomainEventMapperRegistry<IDomainEvent, object>>(
+      TYPES.DomainEventMapperRegistry,
+    ).to(DomainEventMapperRegistry);
     this.app.bind<IConfigurationService>(TYPES.ConfigurationService)
-      .toConstantValue(new ConfigurationService());
+      .to(ConfigurationService);
 
     const factory = new EventBusFactory(
       this.app.get<IMessageBrokerFactory>(TYPES.MessageBrokerFactory),
       this.app.get<IEventTopicMapper>(TYPES.EventTopicMapper),
-      this.app.get<IDomainEventMapperRegistry<IDomainEvent, object>>(TYPES.DomainEventMapperRegistry),
-      this.app.get<IConfigurationService>(TYPES.ConfigurationService)
+      this.app.get<IDomainEventMapperRegistry<IDomainEvent, object>>(
+        TYPES.DomainEventMapperRegistry,
+      ),
+      this.app.get<IConfigurationService>(TYPES.ConfigurationService),
+      this.app.get<IEventHandlerResolver>(TYPES.EventHandlerResolver),
     );
     this.eventBus = factory.create();
 
