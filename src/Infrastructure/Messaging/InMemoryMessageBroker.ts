@@ -8,18 +8,11 @@ import {
 
 export class InMemoryMessageBroker implements IMessageBroker {
   private topics: Map<string, MessageHandler[]> = new Map();
-  private isSetup = false;
   private isStarted = false;
-
   async setup(): Promise<void> {
-    this.isSetup = true;
   }
 
   async start(): Promise<void> {
-    if (!this.isSetup) {
-      throw new Error("Broker must be set up before starting.");
-    }
-    this.isStarted = true;
   }
 
   async subscribe(topic: string, handler: MessageHandler): Promise<void> {
