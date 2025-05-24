@@ -20,6 +20,7 @@ import {
 import { MessageBrokerFactory } from "../BrokerFactory/MessageBrokerFactory";
 import { ConfigurationService } from "kernel.ts";
 import { EventBusFactory } from "./EventBusFactory";
+// import { ResolutionContext } from "@inversifyjs/core/lib/cjs/resolution/models/ResolutionContext";
 
 export class EventBusServiceProvider extends ServiceProvider
   implements IServiceProvider {
@@ -27,8 +28,7 @@ export class EventBusServiceProvider extends ServiceProvider
 
   register(): void {
     this.app.bind<IMessageBrokerFactory>(TYPES.MessageBrokerFactory)
-      .toDynamicValue((context: any) => {
-        const container: Container = context.container;
+      .toDynamicValue((container) => {
         const messageBrokerFactoryMap = container.get<IMessageBrokerFactoryMap>(
           TYPES.MessageBrokerFactoryMap,
         );
@@ -44,9 +44,7 @@ export class EventBusServiceProvider extends ServiceProvider
       .to(ConfigurationService);
 
     this.app.bind<IEventBusFactory>(TYPES.EventBusFactory).toDynamicValue(
-      (context: any) => {
-        const container: Container = context.container;
-
+      (container) => {
         const brokerFactory = container.get<IMessageBrokerFactory>(
           TYPES.MessageBrokerFactory,
         );
