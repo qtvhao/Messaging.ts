@@ -12,7 +12,7 @@ import {
   Message,
   TYPES,
 } from "contracts.ts";
-import { Container } from "inversify";
+// import { Container } from "inversify";
 import {
   DomainEventMapperRegistry,
   EventTopicMapper,
@@ -22,6 +22,7 @@ import { MessageBrokerFactory } from "../BrokerFactory/MessageBrokerFactory";
 import { ConfigurationService } from "kernel.ts";
 import { EventBusFactory } from "./EventBusFactory";
 import { InMemoryMessageBroker } from "./InMemoryMessageBroker";
+import { EventHandlerResolver } from "./Consumers/EventHandlerResolver";
 // import { ResolutionContext } from "@inversifyjs/core/lib/cjs/resolution/models/ResolutionContext";
 
 export class EventBusServiceProvider extends ServiceProvider
@@ -66,16 +67,16 @@ export class EventBusServiceProvider extends ServiceProvider
         const configService = container.get<IConfigurationService>(
           TYPES.ConfigurationService,
         );
-        const handlerResolver = container.get<IEventHandlerResolver>(
-          TYPES.EventHandlerResolver,
-        );
+        const resolver = new EventHandlerResolver();
+        this.app.bind<IEventHandlerResolver>(TYPES.EventHandlerResolver)
+          .toConstantValue(resolver);
 
         return new EventBusFactory(
           brokerFactory,
           topicMapper,
           eventMapperRegistry,
           configService,
-          handlerResolver,
+          resolver,
         );
       },
     );
