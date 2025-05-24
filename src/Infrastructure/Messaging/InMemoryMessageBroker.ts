@@ -16,10 +16,6 @@ export class InMemoryMessageBroker implements IMessageBroker {
   }
 
   async subscribe(topic: string, handler: MessageHandler): Promise<void> {
-    if (!this.isStarted) {
-      throw new Error("Broker must be started before subscribing.");
-    }
-
     const handlers = this.topics.get(topic) || [];
     handlers.push(handler);
     this.topics.set(topic, handlers);
