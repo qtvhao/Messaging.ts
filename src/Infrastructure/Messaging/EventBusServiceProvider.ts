@@ -14,9 +14,9 @@ import {
   ServiceProvider,
   EventTopicMapper,
 } from "support.ts";
-import { EventBus } from "./EventBus";
 import { MessageBrokerFactory } from "../BrokerFactory/MessageBrokerFactory";
 import { ConfigurationService } from "kernel.ts";
+import { EventBusFactory } from "./EventBusFactory";
 
 export class EventBusServiceProvider extends ServiceProvider
   implements IServiceProvider {
@@ -33,28 +33,15 @@ export class EventBusServiceProvider extends ServiceProvider
     this.app.bind<IConfigurationService>(TYPES.ConfigurationService)
       .toConstantValue(new ConfigurationService());
 
-    const configService = this.app.get<IConfigurationService>(
-      TYPES.ConfigurationService
+    const factory = new EventBusFactory(
+      this.app.get<IMessageBrokerFactory>(TYPES.MessageBrokerFactory),
+      this.app.get<IEventTopicMapper>(TYPES.EventTopicMapper),
+      this.app.get<IDomainEventMapperRegistry<IDomainEvent, object>>(TYPES.DomainEventMapperRegistry),
+      this.app.get<IConfigurationService>(TYPES.ConfigurationService)
     );
-    const driver: BrokerType = configService.getEventBusDriver();
-
-    const topicRegistry = this.app.get<IEventTopicMapper>(EventTopicMapper);
-    const eventMapperRegistry = this.app.get<IDomainEventMapperRegistry<IDomainEvent, object>>(
-      TYPES.DomainEventMapperRegistry
-    );
-    const brokerFactory = this.app.get<IMessageBrokerFactory>(
-      TYPES.MessageBrokerFactory
-    );
-    const broker = brokerFactory.create(driver);
-    this.eventBus = new EventBus(broker, topicRegistry, eventMapperRegistry);
+    this.eventBus = factory.create();
 
     this.app.bind<IEventBus>(TYPES.EventBus).toConstantValue(this.eventBus);
-    this.booting(() => {
-      this.eventBus.setup();
-    });
-    this.booted(() => {
-      this.eventBus.start();
-    });
   }
 
   getEventBus(): IEventBus {

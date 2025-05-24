@@ -3,17 +3,20 @@ import {
     IMessageBroker,
     IMessageBrokerFactory,
 } from "contracts.ts";
-import { InMemoryMessageBroker } from "../Messaging/InMemoryBroker";
+type BrokerCreator = () => IMessageBroker;
 
 export class MessageBrokerFactory implements IMessageBrokerFactory {
-    create(type: BrokerType): IMessageBroker {
-        switch (type) {
-            case "inmemory":
-                return new InMemoryMessageBroker();
-            case "kafka":
-            case "nats":
-            default:
-                throw new Error(`Unsupported broker type: ${type}`);
-        }
+  private readonly registry = new Map<BrokerType, BrokerCreator>();
+
+  register(type: BrokerType, creator: BrokerCreator): void {
+    this.registry.set(type, creator);
+  }
+
+  create(type: BrokerType): IMessageBroker {
+    const creator = this.registry.get(type);
+    if (!creator) {
+      throw new Error(`Unsupported broker type: ${type}`);
     }
+    return creator();
+  }
 }
