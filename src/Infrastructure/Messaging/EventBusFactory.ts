@@ -1,11 +1,11 @@
-import { IConfigurationService, IDomainEvent, IDomainEventMapperRegistry, IEventBus, IEventHandlerResolver, IEventTopicMapper, IMessageBrokerFactory } from "contracts.ts";
+import { IConfigurationService, IDomainEvent, IDomainEventMapperRegistry, IEventBus, IEventHandlerResolver, IEventTopicMapper, IMessageBrokerFactory, Message } from "contracts.ts";
 import { EventBus } from "./EventBus";
 
 export class EventBusFactory {
   constructor(
     private readonly brokerFactory: IMessageBrokerFactory,
     private readonly topicMapper: IEventTopicMapper,
-    private readonly eventMapperRegistry: IDomainEventMapperRegistry<IDomainEvent, object>,
+    private readonly eventMapperRegistry: IDomainEventMapperRegistry<IDomainEvent, Message>,
     private readonly configService: IConfigurationService,
     private readonly handlerResolver: IEventHandlerResolver
   ) {}

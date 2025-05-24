@@ -9,6 +9,7 @@ import {
   IMessageBrokerFactory,
   IMessageBrokerFactoryMap,
   IServiceProvider,
+  Message,
   TYPES,
 } from "contracts.ts";
 import { Container } from "inversify";
@@ -37,7 +38,7 @@ export class EventBusServiceProvider extends ServiceProvider
     this.app.bind<IEventTopicMapper>(TYPES.EventTopicMapper).to(
       EventTopicMapper,
     ).inSingletonScope();
-    this.app.bind<IDomainEventMapperRegistry<IDomainEvent, object>>(
+    this.app.bind<IDomainEventMapperRegistry<IDomainEvent, Message>>(
       TYPES.DomainEventMapperRegistry,
     ).to(DomainEventMapperRegistry).inSingletonScope();
     this.app.bind<IConfigurationService>(TYPES.ConfigurationService)
@@ -52,7 +53,7 @@ export class EventBusServiceProvider extends ServiceProvider
           TYPES.EventTopicMapper,
         );
         const eventMapperRegistry = container.get<
-          IDomainEventMapperRegistry<IDomainEvent, object>
+          IDomainEventMapperRegistry<IDomainEvent, Message>
         >(TYPES.DomainEventMapperRegistry);
         const configService = container.get<IConfigurationService>(
           TYPES.ConfigurationService,

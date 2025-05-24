@@ -9,6 +9,7 @@ import {
   IEventTopicMapper,
   IInitializable,
   IMessageBroker,
+  Message,
 } from "contracts.ts";
 
 export class EventBus
@@ -18,7 +19,7 @@ export class EventBus
     private readonly eventTopicMapper: IEventTopicMapper,
     private readonly domainEventMapperRegistry: IDomainEventMapperRegistry<
       IDomainEvent,
-      object
+      Message
     >,
     private readonly handlerResolver: IEventHandlerResolver,
   ) {}
