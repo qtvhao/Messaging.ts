@@ -1,16 +1,18 @@
 import {
   BrokerType,
   IEventBus,
-  IDomainEventMapperRegistry,
   IMessageBrokerFactory,
   IServiceProvider,
   TYPES,
   IConfigurationService,
+  IEventTopicMapper,
+  IDomainEventMapperRegistry,
+  IDomainEvent,
 } from "contracts.ts";
 import {
   DomainEventMapperRegistry,
   ServiceProvider,
-  TopicRegistry,
+  EventTopicMapper,
 } from "support.ts";
 import { EventBus } from "./EventBus";
 import { MessageBrokerFactory } from "../BrokerFactory/MessageBrokerFactory";
@@ -23,10 +25,10 @@ export class EventBusServiceProvider extends ServiceProvider
   register(): void {
     this.app.bind<IMessageBrokerFactory>(TYPES.MessageBrokerFactory)
       .toConstantValue(new MessageBrokerFactory());
-    this.app.bind<TopicRegistry>(TopicRegistry).toConstantValue(
-      new TopicRegistry(),
+    this.app.bind<IEventTopicMapper>(TYPES.EventTopicMapper).toConstantValue(
+      new EventTopicMapper(),
     );
-    this.app.bind<IDomainEventMapperRegistry>(TYPES.EventMapperRegistry)
+    this.app.bind<IDomainEventMapperRegistry<IDomainEvent, object>>(TYPES.DomainEventMapperRegistry)
       .toConstantValue(new DomainEventMapperRegistry());
     this.app.bind<IConfigurationService>(TYPES.ConfigurationService)
       .toConstantValue(new ConfigurationService());
@@ -36,9 +38,9 @@ export class EventBusServiceProvider extends ServiceProvider
     );
     const driver: BrokerType = configService.getEventBusDriver();
 
-    const topicRegistry = this.app.get<TopicRegistry>(TopicRegistry);
-    const eventMapperRegistry = this.app.get<IDomainEventMapperRegistry>(
-      TYPES.EventMapperRegistry
+    const topicRegistry = this.app.get<IEventTopicMapper>(EventTopicMapper);
+    const eventMapperRegistry = this.app.get(
+      TYPES.DomainEventMapperRegistry
     );
     const brokerFactory = this.app.get<IMessageBrokerFactory>(
       TYPES.MessageBrokerFactory
