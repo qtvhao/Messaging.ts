@@ -2,15 +2,16 @@ import {
     BrokerType,
     IMessageBroker,
     IMessageBrokerFactory,
+    IMessageBrokerFactoryMap,
 } from "contracts.ts";
 
 export class MessageBrokerFactory implements IMessageBrokerFactory {
   constructor(
-    private readonly creators: Map<BrokerType, () => IMessageBroker>
+    private readonly messageBrokerFactoryMap: IMessageBrokerFactoryMap
   ) {}
 
   create(type: BrokerType): IMessageBroker {
-    const creator = this.creators.get(type);
+    const creator = this.messageBrokerFactoryMap.get(type);
     if (!creator) {
       throw new Error(`Unsupported BrokerType: ${type}`);
     }
