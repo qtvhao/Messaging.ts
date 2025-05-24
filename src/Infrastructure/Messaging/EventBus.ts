@@ -1,12 +1,12 @@
 import {
   IDomainEvent,
-  IEventHandler,
   IDomainEventMapperRegistry,
+  IEventHandler,
   IEventPublisher,
   IEventSubscriber,
+  IEventTopicMapper,
   IInitializable,
   IMessageBroker,
-  IEventTopicMapper
 } from "contracts.ts";
 
 export class EventBus
@@ -14,7 +14,10 @@ export class EventBus
   constructor(
     private readonly messageBroker: IMessageBroker,
     private readonly eventTopicMapper: IEventTopicMapper,
-    private readonly eventMapperRegistry: IDomainEventMapperRegistry<IDomainEvent, object>,
+    private readonly eventMapperRegistry: IDomainEventMapperRegistry<
+      IDomainEvent,
+      object
+    >,
   ) {}
 
   private handlers = new Map<string, IEventHandler<IDomainEvent>[]>();
@@ -29,13 +32,21 @@ export class EventBus
   }
 
   async publish(events: IDomainEvent[]): Promise<void> {
-
+    for (const event of events) {
+      if (
+        typeof event.eventName !== "function" ||
+        typeof event.version !== "function"
+      ) {
+        throw new Error(
+          `Attempted to publish non-domain event through EventBus: ${event.constructor.name}`,
+        );
+      }
+    }
   }
 
   subscribe<T extends IDomainEvent>(
     eventCtor: new (...args: any[]) => T,
     handler: IEventHandler<T>,
   ): void {
-
   }
 }
