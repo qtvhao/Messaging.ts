@@ -75,6 +75,18 @@ export class EventBusServiceProvider extends ServiceProvider
     this.eventBus = factory.create();
 
     this.app.bind<IEventBus>(TYPES.EventBus).toConstantValue(this.eventBus);
+
+    this.booting(() => {
+      console.debug(
+        "[EventBusServiceProvider] Booting: initializing dependencies and registering event bus.",
+      );
+    });
+
+    this.booted(() => {
+      console.debug(
+        "[EventBusServiceProvider] Booted: EventBus is fully registered and operational.",
+      );
+    });
   }
 
   getEventBus(): IEventBus {
