@@ -1,13 +1,19 @@
 import {
-    BrokerType,
-    IMessageBroker,
-    IMessageBrokerFactory,
-    IMessageBrokerFactoryMap,
+  BrokerType,
+  IMessageBroker,
+  IMessageBrokerFactory,
+  IMessageBrokerFactoryMap,
 } from "contracts.ts";
+import { InMemoryMessageBroker } from "../Messaging/InMemoryMessageBroker";
 
 export class MessageBrokerFactory implements IMessageBrokerFactory {
   constructor(
-    private readonly messageBrokerFactoryMap: IMessageBrokerFactoryMap
+    private readonly messageBrokerFactoryMap: IMessageBrokerFactoryMap =
+      new Map([
+        ["inmemory", () => {
+          return new InMemoryMessageBroker();
+        }],
+      ]),
   ) {}
 
   create(type: BrokerType): IMessageBroker {
