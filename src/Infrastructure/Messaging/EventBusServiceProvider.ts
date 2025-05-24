@@ -29,7 +29,9 @@ export class EventBusServiceProvider extends ServiceProvider
     this.app.bind<IMessageBrokerFactory>(TYPES.MessageBrokerFactory)
       .toDynamicValue((context: any) => {
         const container: Container = context.container;
-        const messageBrokerFactoryMap = container.get<IMessageBrokerFactoryMap>(TYPES.MessageBrokerFactoryMap);
+        const messageBrokerFactoryMap = container.get<IMessageBrokerFactoryMap>(
+          TYPES.MessageBrokerFactoryMap,
+        );
         return new MessageBrokerFactory(messageBrokerFactoryMap);
       });
     this.app.bind<IEventTopicMapper>(TYPES.EventTopicMapper).to(
@@ -41,8 +43,35 @@ export class EventBusServiceProvider extends ServiceProvider
     this.app.bind<IConfigurationService>(TYPES.ConfigurationService)
       .to(ConfigurationService);
 
-    this.app.bind<IEventBusFactory>(TYPES.EventBusFactory).to(EventBusFactory);
+    this.app.bind<IEventBusFactory>(TYPES.EventBusFactory).toDynamicValue(
+      (context: any) => {
+        const container: Container = context.container;
 
+        const brokerFactory = container.get<IMessageBrokerFactory>(
+          TYPES.MessageBrokerFactory,
+        );
+        const topicMapper = container.get<IEventTopicMapper>(
+          TYPES.EventTopicMapper,
+        );
+        const eventMapperRegistry = container.get<
+          IDomainEventMapperRegistry<IDomainEvent, object>
+        >(TYPES.DomainEventMapperRegistry);
+        const configService = container.get<IConfigurationService>(
+          TYPES.ConfigurationService,
+        );
+        const handlerResolver = container.get<IEventHandlerResolver>(
+          TYPES.EventHandlerResolver,
+        );
+
+        return new EventBusFactory(
+          brokerFactory,
+          topicMapper,
+          eventMapperRegistry,
+          configService,
+          handlerResolver,
+        );
+      },
+    );
     const factory = this.app.get<IEventBusFactory>(TYPES.EventBusFactory);
 
     this.eventBus = factory.create();
