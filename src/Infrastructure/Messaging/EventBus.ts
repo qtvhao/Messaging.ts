@@ -2,6 +2,7 @@ import {
   EventConstructor,
   IDomainEvent,
   IDomainEventMapperRegistry,
+  IEventHandler,
   IEventHandlerResolver,
   IEventPublisher,
   IEventSubscriber,
@@ -15,11 +16,11 @@ export class EventBus
   constructor(
     private readonly messageBroker: IMessageBroker,
     private readonly eventTopicMapper: IEventTopicMapper,
-    private readonly eventMapperRegistry: IDomainEventMapperRegistry<
+    private readonly domainEventMapperRegistry: IDomainEventMapperRegistry<
       IDomainEvent,
       object
     >,
-    private readonly handlerResolver: IEventHandlerResolver
+    private readonly handlerResolver: IEventHandlerResolver,
   ) {}
 
   private subscribedTopics = new Set<string>();
@@ -34,19 +35,24 @@ export class EventBus
 
   async publish(events: IDomainEvent[]): Promise<void> {
     for (const event of events) {
-      if (
-        typeof event.eventName !== "function" ||
-        typeof event.version !== "function"
-      ) {
-        throw new Error(
-          `Attempted to publish non-domain event through EventBus: ${event.constructor.name}`,
-        );
+      const topic = this.eventTopicMapper.getTopicForEvent(
+        event.constructor as EventConstructor<IDomainEvent>,
+      );
+      const mapper = this.domainEventMapperRegistry.get(event.eventName());
+
+      if (!mapper) {
+        throw new Error(`No mapper registered for event: ${event.eventName()}`);
       }
+
+      const dto = mapper.toDTO(event);
+      const message = Buffer.from(JSON.stringify(dto));
+      await this.messageBroker.produce(topic, message);
     }
   }
 
-  async subscribe<T extends IDomainEvent>(
-    eventCtor: EventConstructor<T>
-  ): Promise<void> {
+  subscribe<T extends IDomainEvent>(
+    eventCtor: EventConstructor<T>,
+    handler: IEventHandler<T>,
+  ): void {
   }
 }

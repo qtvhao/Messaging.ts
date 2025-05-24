@@ -1,7 +1,7 @@
 import {
   IDomainEvent,
   IEventHandler,
-  IEventMapper,
+  IDomainEventMapper,
 } from "contracts.ts";
 
 interface MyDTO {
@@ -14,6 +14,7 @@ interface MyDTO {
  * Implements IDomainEvent and provides event metadata like name and version.
  */
 class MyDomainEvent implements IDomainEvent {
+  __brand: "DomainEvent";
   public occurredOn: Date;
   public aggregateId: string;
 
@@ -36,7 +37,7 @@ class MyDomainEvent implements IDomainEvent {
  * Maps between MyDTO and MyDomainEvent.
  * Converts domain events to data transfer objects and vice versa.
  */
-class MyEventMapper implements IEventMapper<MyDTO, MyDomainEvent> {
+class MyEventMapper implements IDomainEventMapper<MyDTO, MyDomainEvent> {
   toDomain(dto: MyDTO): MyDomainEvent {
     return new MyDomainEvent(dto.id, dto.value);
   }

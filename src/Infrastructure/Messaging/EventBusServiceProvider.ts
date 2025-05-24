@@ -3,6 +3,7 @@ import {
   IDomainEvent,
   IDomainEventMapperRegistry,
   IEventBus,
+  IEventBusFactory,
   IEventHandlerResolver,
   IEventTopicMapper,
   IMessageBrokerFactory,
@@ -35,15 +36,10 @@ export class EventBusServiceProvider extends ServiceProvider
     this.app.bind<IConfigurationService>(TYPES.ConfigurationService)
       .to(ConfigurationService);
 
-    const factory = new EventBusFactory(
-      this.app.get<IMessageBrokerFactory>(TYPES.MessageBrokerFactory),
-      this.app.get<IEventTopicMapper>(TYPES.EventTopicMapper),
-      this.app.get<IDomainEventMapperRegistry<IDomainEvent, object>>(
-        TYPES.DomainEventMapperRegistry,
-      ),
-      this.app.get<IConfigurationService>(TYPES.ConfigurationService),
-      this.app.get<IEventHandlerResolver>(TYPES.EventHandlerResolver),
-    );
+    this.app.bind<IEventBusFactory>(TYPES.EventBusFactory).to(EventBusFactory);
+
+    const factory = this.app.get<IEventBusFactory>(TYPES.EventBusFactory);
+
     this.eventBus = factory.create();
 
     this.app.bind<IEventBus>(TYPES.EventBus).toConstantValue(this.eventBus);
