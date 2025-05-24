@@ -88,6 +88,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dotenv@npm:^16.5.0":
+  version: 16.5.0
+  resolution: "dotenv@npm:16.5.0"
+  checksum: 6543fe87b5ddf2d60dd42df6616eec99148a5fc150cb4530fef5bda655db5204a3afa0e6f25f7cd64b20657ace4d79c0ef974bec32fdb462cad18754191e7a90
+  languageName: node
+  linkType: hard
+
 "inversify@npm:^7.5.1":
   version: 7.5.1
   resolution: "inversify@npm:7.5.1"
@@ -103,12 +110,13 @@ __metadata:
 
 "kernel.ts@github:qtvhao/kernel.ts":
   version: 1.0.0
-  resolution: "kernel.ts@https://github.com/qtvhao/kernel.ts.git#commit=0fe1a6a01f68615b1b67326843ea78a18164b11c"
+  resolution: "kernel.ts@https://github.com/qtvhao/kernel.ts.git#commit=f1ccc32ee8392aecd4d557be296cbb84083f1425"
   dependencies:
     contracts.ts: "github:qtvhao/contracts.ts"
+    dotenv: ^16.5.0
     inversify: ^7.5.1
     support.ts: "github:qtvhao/support.ts"
-  checksum: 79904ad44a7cd81786a45a9cf88fe14dfa381e459dbd28ea86a98a294d875fac9d1435a04f8f9a28b942400d243c36ebfb68cd17ed74aeea055a5b9df41e6a06
+  checksum: f80e786b5e801722150570b2607c7ea4f59fb48f317b7c1e1e30a0eeba851cfbf888d11aa5cc09d7b6d589f3749310b099ce2281a3a9c84320724dceed9f3cf0
   languageName: node
   linkType: hard
 

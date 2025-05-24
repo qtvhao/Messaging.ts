@@ -1,34 +1,35 @@
 import { Consumer, IHeaders, Kafka, Producer } from "kafkajs";
 import {
     EachMessagePayload,
+    IConfigurationService,
     IMessageBroker,
     MessageHandler,
 } from "contracts.ts";
 
 function mapHeaders(
-  headers: IHeaders | undefined
+    headers: IHeaders | undefined,
 ): Record<string, Buffer | string> {
-  const result: Record<string, Buffer | string> = {};
+    const result: Record<string, Buffer | string> = {};
 
-  if (!headers) {
-    return result;
-  }
-
-  for (const key in headers) {
-    const value = headers[key];
-    if (Buffer.isBuffer(value)) {
-      result[key] = value;
-    } else if (typeof value === "string") {
-      result[key] = value;
-    } else if (value === undefined || value === null) {
-      continue; // skip undefined or null
-    } else {
-      // Kafka headers may contain buffers or other primitive types
-      result[key] = value.toString();
+    if (!headers) {
+        return result;
     }
-  }
 
-  return result;
+    for (const key in headers) {
+        const value = headers[key];
+        if (Buffer.isBuffer(value)) {
+            result[key] = value;
+        } else if (typeof value === "string") {
+            result[key] = value;
+        } else if (value === undefined || value === null) {
+            continue; // skip undefined or null
+        } else {
+            // Kafka headers may contain buffers or other primitive types
+            result[key] = value.toString();
+        }
+    }
+
+    return result;
 }
 
 export class KafkaMessageBroker implements IMessageBroker {
@@ -37,7 +38,11 @@ export class KafkaMessageBroker implements IMessageBroker {
     private readonly consumer: Consumer;
     private readonly topics: Map<string, MessageHandler[]> = new Map();
 
-    constructor(brokerList: string[], clientId: string, groupId: string) {
+    constructor(configurationService: IConfigurationService) {
+        const clientId = configurationService.getKafkaClientId();
+        const brokerList = configurationService.getKafkaBrokers();
+        const groupId = configurationService.getKafkaGroupId();
+
         this.kafka = new Kafka({ clientId, brokers: brokerList });
         this.producer = this.kafka.producer();
         this.consumer = this.kafka.consumer({ groupId });
