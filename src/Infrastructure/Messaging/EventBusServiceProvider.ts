@@ -39,7 +39,7 @@ export class EventBusServiceProvider extends ServiceProvider
     ).inSingletonScope();
     this.app.bind<IDomainEventMapperRegistry<IDomainEvent, object>>(
       TYPES.DomainEventMapperRegistry,
-    ).to(DomainEventMapperRegistry);
+    ).to(DomainEventMapperRegistry).inSingletonScope();
     this.app.bind<IConfigurationService>(TYPES.ConfigurationService)
       .to(ConfigurationService);
 
