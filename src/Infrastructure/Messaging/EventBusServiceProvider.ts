@@ -1,4 +1,5 @@
 import {
+  BrokerType,
   IConfigurationService,
   IDomainEvent,
   IDomainEventMapperRegistry,
@@ -6,6 +7,7 @@ import {
   IEventBusFactory,
   IEventHandlerResolver,
   IEventTopicMapper,
+  IMessageBroker,
   IMessageBrokerFactory,
   IMessageBrokerFactoryMap,
   IServiceProvider,
@@ -23,6 +25,7 @@ import { ConfigurationService } from "kernel.ts";
 import { EventBusFactory } from "./EventBusFactory";
 import { InMemoryMessageBroker } from "./InMemoryMessageBroker";
 import { EventHandlerResolver } from "./Consumers/EventHandlerResolver";
+import { SupabaseMessageBroker } from "./SupabaseMessageBroker";
 // import { ResolutionContext } from "@inversifyjs/core/lib/cjs/resolution/models/ResolutionContext";
 
 export class EventBusServiceProvider extends ServiceProvider
@@ -30,13 +33,6 @@ export class EventBusServiceProvider extends ServiceProvider
   private eventBus!: IEventBus;
 
   register(): void {
-    const creators: IMessageBrokerFactoryMap = new Map([
-      ["inmemory", () => {
-        return new InMemoryMessageBroker();
-      }],
-    ]);
-    this.app.bind<IMessageBrokerFactoryMap>(TYPES.MessageBrokerFactoryMap)
-      .toConstantValue(creators);
     this.app.bind<IMessageBrokerFactory>(TYPES.MessageBrokerFactory)
       .toDynamicValue((container) => {
         const messageBrokerFactoryMap = container.get<IMessageBrokerFactoryMap>(
@@ -51,7 +47,23 @@ export class EventBusServiceProvider extends ServiceProvider
       TYPES.DomainEventMapperRegistry,
     ).to(DomainEventMapperRegistry).inSingletonScope();
     this.app.bind<IConfigurationService>(TYPES.ConfigurationService)
-      .to(ConfigurationService);
+      .to(ConfigurationService).inSingletonScope();
+
+    const creators: IMessageBrokerFactoryMap = new Map<
+      BrokerType,
+      () => IMessageBroker
+    >([
+      ["inmemory", () => {
+        return new InMemoryMessageBroker();
+      }],
+      ["supabase", () => {
+        return new SupabaseMessageBroker(
+          this.app.get<IConfigurationService>(TYPES.ConfigurationService),
+        );
+      }],
+    ]);
+    this.app.bind<IMessageBrokerFactoryMap>(TYPES.MessageBrokerFactoryMap)
+      .toConstantValue(creators);
 
     this.app.bind<IEventBusFactory>(TYPES.EventBusFactory).toDynamicValue(
       (container) => {

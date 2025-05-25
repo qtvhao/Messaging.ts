@@ -8,7 +8,6 @@ import {
 
 export class InMemoryMessageBroker implements IMessageBroker {
   private topics: Map<string, MessageHandler[]> = new Map();
-  private isStarted = false;
   async setup(): Promise<void> {
   }
 
