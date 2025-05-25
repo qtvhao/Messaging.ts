@@ -78,4 +78,7 @@ export class EventBus
       await handler.handle(domainEvent as T);
     });
   }
+  async shutdown(): Promise<void> {
+    await this.messageBroker.shutdown();
+  }
 }

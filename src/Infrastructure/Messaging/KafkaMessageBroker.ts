@@ -101,4 +101,12 @@ export class KafkaMessageBroker implements IMessageBroker {
             messages: [{ value: message }],
         });
     }
+    async shutdown(): Promise<void> {
+        try {
+            await this.consumer.disconnect();
+            await this.producer.disconnect();
+        } catch (error) {
+            console.error("Error during Kafka shutdown:", error);
+        }
+    }
 }

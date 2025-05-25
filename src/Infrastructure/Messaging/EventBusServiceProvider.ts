@@ -114,6 +114,13 @@ export class EventBusServiceProvider extends ServiceProvider
         "[EventBusServiceProvider] Booted: EventBus is fully registered and operational.",
       );
     });
+
+    this.app.terminating(async () => {
+      console.debug(
+        "[EventBusServiceProvider] Terminating: shutting down eventbus.",
+      );
+      await this.eventBus.shutdown();
+    });
   }
 
   getEventBus(): IEventBus {

@@ -56,4 +56,12 @@ export class SupabaseMessageBroker implements IMessageBroker {
       },
     });
   }
+
+  async shutdown(): Promise<void> {
+    for (const [topic] of this.topics.entries()) {
+      const channel = this.client.channel(topic);
+      await channel.unsubscribe();
+    }
+    this.topics.clear();
+  }
 }

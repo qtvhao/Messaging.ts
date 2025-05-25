@@ -45,4 +45,7 @@ export class InMemoryMessageBroker implements IMessageBroker {
       await handler(payload);
     }
   }
+  async shutdown(): Promise<void> {
+      
+  }
 }
