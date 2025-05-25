@@ -103,6 +103,11 @@ export class EventBusServiceProvider extends ServiceProvider
         "[EventBusServiceProvider] Booting: initializing dependencies and registering event bus.",
       );
     });
+    this.booted(async () => {
+      const eventBus = this.app.get<IEventBus>(TYPES.EventBus);
+      await eventBus.setup();
+      await eventBus.start();
+    });
 
     this.booted(() => {
       console.debug(
