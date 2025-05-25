@@ -91,7 +91,7 @@ export class EventBusServiceProvider extends ServiceProvider
           resolver,
         );
       },
-    );
+    ).inSingletonScope();
     const factory = this.app.get<IEventBusFactory>(TYPES.EventBusFactory);
 
     this.eventBus = factory.create();
