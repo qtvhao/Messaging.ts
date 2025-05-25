@@ -4,7 +4,6 @@ import {
   IMessageBrokerFactory,
   IMessageBrokerFactoryMap,
 } from "contracts.ts";
-import { InMemoryMessageBroker } from "../Messaging/InMemoryMessageBroker";
 
 export class MessageBrokerFactory implements IMessageBrokerFactory {
   constructor(

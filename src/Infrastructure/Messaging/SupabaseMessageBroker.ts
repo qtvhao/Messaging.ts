@@ -1,8 +1,8 @@
 import {
-  IMessageBroker,
   EachMessagePayload,
-  MessageHandler,
   IConfigurationService,
+  IMessageBroker,
+  MessageHandler,
 } from "contracts.ts";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
@@ -24,12 +24,13 @@ export class SupabaseMessageBroker implements IMessageBroker {
     for (const [topic, handlers] of this.topics.entries()) {
       const channel = this.client.channel(topic);
       channel.on("broadcast", { event: topic }, async (payload) => {
+        console.log(`Received message on topic '${topic}':`, payload.payload);
         const message = payload.payload as EachMessagePayload["message"];
         for (const handler of handlers) {
           await handler({ topic, message });
         }
       });
-      await channel.subscribe();
+      channel.subscribe();
     }
   }
 
