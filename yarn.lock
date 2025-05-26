@@ -110,7 +110,7 @@ __metadata:
 
 "kernel.ts@github:qtvhao/kernel.ts":
   version: 1.0.0
-  resolution: "kernel.ts@https://github.com/qtvhao/kernel.ts.git#commit=4a15d6aaa216d3ae4de43c986ef4e4aa407fa272"
+  resolution: "kernel.ts@https://github.com/qtvhao/kernel.ts.git#commit=8912941e8f0dd1063391ce2b08abea4d31018b9d"
   dependencies:
     contracts.ts: "github:qtvhao/contracts.ts"
     dotenv: ^16.5.0
@@ -133,7 +133,7 @@ __metadata:
 
 "support.ts@github:qtvhao/support.ts":
   version: 1.0.0
-  resolution: "support.ts@https://github.com/qtvhao/support.ts.git#commit=8c6a88122f9204d9bee4859975ee4d6f2c8ab383"
+  resolution: "support.ts@https://github.com/qtvhao/support.ts.git#commit=3ef0c244ed8509986932c29ec246a270ae596668"
   dependencies:
     contracts.ts: "github:qtvhao/Contracts.ts"
     inversify: ^7.5.1
