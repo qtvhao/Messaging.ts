@@ -64,6 +64,9 @@ export class EventBusServiceProvider extends ServiceProvider
     ]);
     this.app.bind<IMessageBrokerFactoryMap>(TYPES.MessageBrokerFactoryMap)
       .toConstantValue(creators);
+    const resolver = new EventHandlerResolver();
+    this.app.bind<IEventHandlerResolver>(TYPES.EventHandlerResolver)
+      .toConstantValue(resolver);
 
     this.app.bind<IEventBusFactory>(TYPES.EventBusFactory).toDynamicValue(
       (container) => {
@@ -79,10 +82,6 @@ export class EventBusServiceProvider extends ServiceProvider
         const configService = container.get<IConfigurationService>(
           TYPES.ConfigurationService,
         );
-        const resolver = new EventHandlerResolver();
-        this.app.bind<IEventHandlerResolver>(TYPES.EventHandlerResolver)
-          .toConstantValue(resolver);
-
         return new EventBusFactory(
           brokerFactory,
           topicMapper,
