@@ -110,7 +110,7 @@ __metadata:
 
 "kernel.ts@github:qtvhao/kernel.ts":
   version: 1.0.0
-  resolution: "kernel.ts@https://github.com/qtvhao/kernel.ts.git#commit=8912941e8f0dd1063391ce2b08abea4d31018b9d"
+  resolution: "kernel.ts@https://github.com/qtvhao/kernel.ts.git#commit=7fe243f7d3d060ba130e1144022820256c40eb6a"
   dependencies:
     contracts.ts: "github:qtvhao/contracts.ts"
     dotenv: ^16.5.0
