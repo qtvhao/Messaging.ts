@@ -3,14 +3,19 @@ import {
   IConfigurationService,
   IMessageBroker,
   MessageHandler,
+  TYPES,
 } from "contracts.ts";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { inject, injectable } from "inversify";
 
+@injectable()
 export class SupabaseMessageBroker implements IMessageBroker {
   private client: SupabaseClient;
   private readonly topics: Map<string, MessageHandler[]> = new Map();
 
-  constructor(configService: IConfigurationService) {
+  constructor(
+    @inject(TYPES.ConfigurationService) configService: IConfigurationService,
+  ) {
     const url = configService.getSupabaseUrl();
     const key = configService.getSupabaseKey();
     console.log("🔧 Initializing Supabase client with URL:", url);
