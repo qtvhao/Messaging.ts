@@ -3,11 +3,16 @@ import {
   IMessageBroker,
   IMessageBrokerFactory,
   IMessageBrokerFactoryMap,
+  TYPES,
 } from "contracts.ts";
+import { inject, injectable } from "inversify";
 
+@injectable()
 export class MessageBrokerFactory implements IMessageBrokerFactory {
   constructor(
-    private readonly messageBrokerFactoryMap: IMessageBrokerFactoryMap,
+    @inject(
+      TYPES.MessageBrokerFactoryMap,
+    ) private readonly messageBrokerFactoryMap: IMessageBrokerFactoryMap,
   ) {}
 
   create(type: BrokerType): IMessageBroker {
