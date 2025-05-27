@@ -33,12 +33,7 @@ export class EventBusServiceProvider extends ServiceProvider
 
   register(): void {
     this.app.bind<IMessageBrokerFactory>(TYPES.MessageBrokerFactory)
-      .toDynamicValue((container) => {
-        const messageBrokerFactoryMap = container.get<IMessageBrokerFactoryMap>(
-          TYPES.MessageBrokerFactoryMap,
-        );
-        return new MessageBrokerFactory(messageBrokerFactoryMap);
-      });
+      .to(MessageBrokerFactory);
     this.app.bind<IEventTopicMapper>(TYPES.EventTopicMapper).to(
       EventTopicMapper,
     ).inSingletonScope();
@@ -48,24 +43,23 @@ export class EventBusServiceProvider extends ServiceProvider
     this.app.bind<IConfigurationService>(TYPES.ConfigurationService)
       .to(ConfigurationService).inSingletonScope();
 
+    this.app.bind(SupabaseMessageBroker).toSelf();
+    this.app.bind(InMemoryMessageBroker).toSelf();
     const creators: IMessageBrokerFactoryMap = new Map<
       BrokerType,
       () => IMessageBroker
     >([
       ["inmemory", () => {
-        return new InMemoryMessageBroker();
+        return this.app.get(InMemoryMessageBroker);
       }],
       ["supabase", () => {
-        return new SupabaseMessageBroker(
-          this.app.get<IConfigurationService>(TYPES.ConfigurationService),
-        );
+        return this.app.get(SupabaseMessageBroker);
       }],
     ]);
     this.app.bind<IMessageBrokerFactoryMap>(TYPES.MessageBrokerFactoryMap)
       .toConstantValue(creators);
-    const resolver = new EventHandlerResolver();
     this.app.bind<IEventHandlerResolver>(TYPES.EventHandlerResolver)
-      .toConstantValue(resolver);
+      .to(EventHandlerResolver).inSingletonScope();
 
     this.app.bind<IEventBusFactory>(TYPES.EventBusFactory)
       .to(EventBusFactory)
