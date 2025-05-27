@@ -127,9 +127,18 @@ __metadata:
     "@types/node": ^22.15.21
     class-transformer: ^0.5.1
     contracts.ts: "github:qtvhao/contracts.ts"
+    inversify: ^7.5.1
     kernel.ts: "github:qtvhao/kernel.ts"
+    reflect-metadata: ^0.2.2
   languageName: unknown
   linkType: soft
+
+"reflect-metadata@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "reflect-metadata@npm:0.2.2"
+  checksum: a66c7b583e4efdd8f3c3124fbff33da2d0c86d8280617516308b32b2159af7a3698c961db3246387f56f6316b1d33a608f39bb2b49d813316dfc58f6d3bf3210
+  languageName: node
+  linkType: hard
 
 "support.ts@github:qtvhao/support.ts":
   version: 1.0.0

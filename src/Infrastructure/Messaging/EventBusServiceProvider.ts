@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import {
   BrokerType,
   IConfigurationService,
@@ -14,7 +15,6 @@ import {
   Message,
   TYPES,
 } from "contracts.ts";
-// import { Container } from "inversify";
 import {
   DomainEventMapperRegistry,
   EventTopicMapper,
@@ -26,11 +26,10 @@ import { EventBusFactory } from "./EventBusFactory";
 import { InMemoryMessageBroker } from "./InMemoryMessageBroker";
 import { EventHandlerResolver } from "./Consumers/EventHandlerResolver";
 import { SupabaseMessageBroker } from "./SupabaseMessageBroker";
-// import { ResolutionContext } from "@inversifyjs/core/lib/cjs/resolution/models/ResolutionContext";
 
 export class EventBusServiceProvider extends ServiceProvider
   implements IServiceProvider {
-  private eventBus!: IEventBus;
+  private eventBus: IEventBus | null = null;
 
   register(): void {
     this.app.bind<IMessageBrokerFactory>(TYPES.MessageBrokerFactory)
@@ -68,29 +67,9 @@ export class EventBusServiceProvider extends ServiceProvider
     this.app.bind<IEventHandlerResolver>(TYPES.EventHandlerResolver)
       .toConstantValue(resolver);
 
-    this.app.bind<IEventBusFactory>(TYPES.EventBusFactory).toDynamicValue(
-      (container) => {
-        const brokerFactory = container.get<IMessageBrokerFactory>(
-          TYPES.MessageBrokerFactory,
-        );
-        const topicMapper = container.get<IEventTopicMapper>(
-          TYPES.EventTopicMapper,
-        );
-        const eventMapperRegistry = container.get<
-          IDomainEventMapperRegistry<IDomainEvent, Message>
-        >(TYPES.DomainEventMapperRegistry);
-        const configService = container.get<IConfigurationService>(
-          TYPES.ConfigurationService,
-        );
-        return new EventBusFactory(
-          brokerFactory,
-          topicMapper,
-          eventMapperRegistry,
-          configService,
-          resolver,
-        );
-      },
-    ).inSingletonScope();
+    this.app.bind<IEventBusFactory>(TYPES.EventBusFactory)
+      .to(EventBusFactory)
+      .inSingletonScope();
     const factory = this.app.get<IEventBusFactory>(TYPES.EventBusFactory);
 
     this.eventBus = factory.create();
@@ -118,11 +97,11 @@ export class EventBusServiceProvider extends ServiceProvider
       console.debug(
         "[EventBusServiceProvider] Terminating: shutting down eventbus.",
       );
-      await this.eventBus.shutdown();
+      await this.eventBus?.shutdown();
     });
   }
 
-  getEventBus(): IEventBus {
+  getEventBus(): IEventBus | null {
     return this.eventBus;
   }
 
