@@ -81,7 +81,7 @@ export class EventBusServiceProvider extends ServiceProvider
       await eventBus.start();
     });
 
-    this.booted(() => {
+    this.booted(async () => {
       console.debug(
         "[EventBusServiceProvider] Booted: EventBus is fully registered and operational.",
       );
