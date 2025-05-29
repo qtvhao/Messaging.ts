@@ -55,11 +55,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:^22.15.21":
-  version: 22.15.23
-  resolution: "@types/node@npm:22.15.23"
+  version: 22.15.24
+  resolution: "@types/node@npm:22.15.24"
   dependencies:
     undici-types: ~6.21.0
-  checksum: 24d204beedcf96d5c9068da2553e01b8e90edecab8498055d1abc24d454211a7757fa858fabebbe0aec86988012c33d0025e31bab63ab2c6307807c84931930e
+  checksum: 664a33bf8cf7f4fe9c0512f40ab3e767f3990a20258a39bcbf0763093be34c4a731091894f0ccb8799494b142ce15582593f9e5fe7d0de337efff11bcd5c5678
   languageName: node
   linkType: hard
 
@@ -72,19 +72,19 @@ __metadata:
 
 "contracts.ts@github:qtvhao/Contracts.ts":
   version: 1.0.0
-  resolution: "contracts.ts@https://github.com/qtvhao/Contracts.ts.git#commit=314ef282fb1a6cd4736a9d2781b3cf45d6b843bd"
+  resolution: "contracts.ts@https://github.com/qtvhao/Contracts.ts.git#commit=d5e2408e6cd7b0c67e041399021edabd209675fb"
   dependencies:
     inversify: ^7.5.1
-  checksum: 70fb0ba312eb6487e71eae2837f637fb7488018423f5f4f6a15a33fae3fe0d221e84db71e0132d1f7f8973eeea69feadc639a4d365e05a7c2b97d54c9cb6e6e6
+  checksum: 3189ab85a39cbffeb719bb0e173bf1600697476d0783981e45bfe4fe8f9d0c8ff64f664e35c4bd1a45028cac18c26d2f0a0f0fa69db65c8ffb2e8bddc646d37d
   languageName: node
   linkType: hard
 
 "contracts.ts@github:qtvhao/contracts.ts":
   version: 1.0.0
-  resolution: "contracts.ts@https://github.com/qtvhao/contracts.ts.git#commit=314ef282fb1a6cd4736a9d2781b3cf45d6b843bd"
+  resolution: "contracts.ts@https://github.com/qtvhao/contracts.ts.git#commit=d5e2408e6cd7b0c67e041399021edabd209675fb"
   dependencies:
     inversify: ^7.5.1
-  checksum: 70fb0ba312eb6487e71eae2837f637fb7488018423f5f4f6a15a33fae3fe0d221e84db71e0132d1f7f8973eeea69feadc639a4d365e05a7c2b97d54c9cb6e6e6
+  checksum: 3189ab85a39cbffeb719bb0e173bf1600697476d0783981e45bfe4fe8f9d0c8ff64f664e35c4bd1a45028cac18c26d2f0a0f0fa69db65c8ffb2e8bddc646d37d
   languageName: node
   linkType: hard
 
@@ -110,13 +110,13 @@ __metadata:
 
 "kernel.ts@github:qtvhao/kernel.ts":
   version: 1.0.0
-  resolution: "kernel.ts@https://github.com/qtvhao/kernel.ts.git#commit=dc7be631915caff8ab7780ffef3dfbcbbebcc102"
+  resolution: "kernel.ts@https://github.com/qtvhao/kernel.ts.git#commit=c4e14436344d6e993013979e382f9c44e59c915b"
   dependencies:
     contracts.ts: "github:qtvhao/contracts.ts"
     dotenv: ^16.5.0
     inversify: ^7.5.1
     support.ts: "github:qtvhao/support.ts"
-  checksum: 6c1c70350f4ca01a694ce4ab386e76ed33c4510e23ad30f13649fd2b1381648b82c9ce08751ab7897162d95e68a79d22d1ad0462841f105b2274bb942004971e
+  checksum: aa9c9b2a7ffd9d0e2feb0fed57c19541f6a7f91faf74177104f711b2d702181200943975a8bc10cb4a9e48d3b2f65c58d0297dde3c217f5c0a5c9f42269acc21
   languageName: node
   linkType: hard
 
@@ -142,11 +142,11 @@ __metadata:
 
 "support.ts@github:qtvhao/support.ts":
   version: 1.0.0
-  resolution: "support.ts@https://github.com/qtvhao/support.ts.git#commit=b24760d3cbfa311eb0dc011f64fe6fa0dfda9b10"
+  resolution: "support.ts@https://github.com/qtvhao/support.ts.git#commit=7aa45d6a83556ce8c2b961838f5cced6a2448309"
   dependencies:
     contracts.ts: "github:qtvhao/Contracts.ts"
     inversify: ^7.5.1
-  checksum: bab413d6bb18cf987f05168f0b63756a1ef1e084b96bd4a42955fe44f8dbb16223343aa39335728eb0606da0444a1297b4e9fdc62975c20bd522d908534ac007
+  checksum: bd03ed8274b8085d1d556e4e7e79b45349de40027f47ca8065ac89624e313deb930c33d0b6dfd4d58760214b4d9c383c5a0084fa3345e677b32391e0d9cad666
   languageName: node
   linkType: hard
 

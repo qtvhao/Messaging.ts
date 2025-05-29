@@ -34,13 +34,14 @@ export class EventBus
 
   async publish(events: IDomainEvent[]): Promise<void> {
     for (const event of events) {
+      const eventConstructor = event.constructor as EventConstructor<IDomainEvent>;
       const topic = this.eventTopicMapper.getTopicForEvent(
-        event.constructor as EventConstructor<IDomainEvent>,
+        eventConstructor,
       );
-      const mapper = this.domainEventMapperRegistry.get(event.eventName());
+      const mapper = this.domainEventMapperRegistry.get(eventConstructor);
 
       if (!mapper) {
-        throw new Error(`No mapper registered for event: ${event.eventName()}`);
+        throw new Error(`No mapper registered for event: ${eventConstructor}`);
       }
 
       const dto = mapper.toDTO(event);
@@ -64,7 +65,7 @@ export class EventBus
 
       const dto = JSON.parse(message.value.toString());
       const mapper = this.domainEventMapperRegistry.get(
-        new eventCtor().eventName(),
+        eventCtor,
       );
 
       if (!mapper) {
